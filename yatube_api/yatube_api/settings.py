@@ -17,7 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_simplejwt',  # Добавляем для JWT
+    'rest_framework_simplejwt',
     'api',
     'posts',
 ]
@@ -89,17 +89,15 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-# Настройки REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',  # Изменено!
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
 
-# Настройки JWT
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'AUTH_HEADER_TYPES': ('Bearer',),
