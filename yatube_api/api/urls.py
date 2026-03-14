@@ -1,24 +1,20 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.urls import include, path
+from rest_framework import routers
 
-from .views import PostViewSet, CommentViewSet, FollowViewSet
+from .views import (PostViewSet, GroupViewSet, CommentViewSet, UserViewSet,
+                    FollowViewSet)
 
-router = DefaultRouter()
+
+router = routers.DefaultRouter()
 router.register('posts', PostViewSet, basename='posts')
-router.register('follow', FollowViewSet, basename='follow')
+router.register('groups', GroupViewSet, basename='groups')
+router.register(r'posts/(?P<post_id>\d+)/comments',
+                CommentViewSet, basename='comments')
+router.register('follow', FollowViewSet, basename='follows')
+router.register('users', UserViewSet, basename='users')
 
 urlpatterns = [
     path('v1/', include(router.urls)),
-    path('v1/posts/<int:post_id>/comments/',
-         CommentViewSet.as_view({'get': 'list', 'post': 'create'}),
-         name='post-comments'),
-    path('v1/posts/<int:post_id>/comments/<int:pk>/',
-         CommentViewSet.as_view({'get': 'retrieve',
-                                 'put': 'update',
-                                 'patch': 'partial_update',
-                                 'delete': 'destroy'}),
-         name='comment-detail'),
-    path('v1/jwt/create/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('v1/jwt/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('v1/auth/', include('djoser.urls')),
+    path('v1/auth/', include('djoser.urls.jwt')),
 ]
