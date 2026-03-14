@@ -1,50 +1,48 @@
+from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
+
+from posts.models import Comment, Post, Follow
 from django.contrib.auth import get_user_model
-from django.db import models
 
 User = get_user_model()
 
 
-class Post(models.Model):
-    text = models.TextField()
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='posts')
-    image = models.ImageField(
-        upload_to='posts/', null=True, blank=True)
+class PostSerializer(serializers.ModelSerializer):
+    author = SlugRelatedField(slug_field='username', read_only=True)
 
-    def __str__(self):
-        return self.text
+    class Meta:
+        fields = '__all__'
+        model = Post
 
 
-class Comment(models.Model):
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments')
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='comments')
-    text = models.TextField()
-    created = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True)
-
-
-class Follow(models.Model):
-    user = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
-        related_name='follower'
-    )
-    following = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
-        related_name='following'
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
     )
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'following'],
-                name='unique_follow'
-            )
-        ]
+        fields = '__all__'
+        model = Comment
 
-    def __str__(self):
-        return f'{self.user} подписан на {self.following}'
+
+class FollowSerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
+    following = serializers.SlugRelatedField(
+        slug_field='username',
+        queryset=User.objects.all()
+    )
+
+    class Meta:
+        fields = ('user', 'following')
+        model = Follow
+
+    def validate_following(self, value):
+        if self.context['request'].user == value:
+            raise serializers.ValidationError(
+                'Нельзя подписаться на самого себя'
+            )
+        return value
