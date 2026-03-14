@@ -1,73 +1,48 @@
-from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, filters
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
-from rest_framework.mixins import CreateModelMixin, ListModelMixin
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, permissions, mixins
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import filters
 
-from posts.models import Post, Group, User, Follow
-from .serializers import (PostSerializer, UserSerializer, GroupSerializer,
-                          CommentSerializer, FollowSerializer)
-from .permissions import IsAuthorOrReadOnly, ReadOnly
-
-
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-
-class GroupViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = GroupSerializer
-    queryset = Group.objects.all()
-    permission_classes = (IsAuthorOrReadOnly,)
-
-    def get_permissions(self):
-        if self.action == 'retrieve':
-            return (ReadOnly(),)
-
-        return super().get_permissions()
+from posts.models import Post, Comment, Follow
+from .serializers import PostSerializer, CommentSerializer, FollowSerializer
+from .permissions import IsAuthorOrReadOnly
 
 
 class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all().order_by('-pub_date')  # Добавил сортировку
     serializer_class = PostSerializer
-    queryset = Post.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly,)
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('group',)
+    permission_classes = (IsAuthorOrReadOnly,)
+    pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
-    def get_permissions(self):
-        if self.action == 'retrieve':
-            return (ReadOnly(),)
-
-        return super().get_permissions()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
 
+    def get_queryset(self):
+        post_id = self.kwargs.get('post_id')
+        return Comment.objects.filter(post_id=post_id).order_by('-created')  # Добавил сортировку
+
     def perform_create(self, serializer):
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        serializer.save(author=self.request.user, post=post)
+        post_id = self.kwargs.get('post_id')
+        serializer.save(
+            author=self.request.user,
+            post_id=post_id
+        )
+
+
+class FollowViewSet(mixins.CreateModelMixin,
+                    mixins.ListModelMixin,
+                    viewsets.GenericViewSet):
+    serializer_class = FollowSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('following__username',)
 
     def get_queryset(self):
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
-        return post.comments.all()
-
-
-class FollowViewSet(viewsets.GenericViewSet, CreateModelMixin, ListModelMixin):
-    serializer_class = FollowSerializer
-    queryset = Follow.objects.all()
-    permission_classes = (IsAuthenticated,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('user__username', 'following__username')
+        return Follow.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-    def get_queryset(self):
-        user = get_object_or_404(User, username=self.request.user.username)
-        return user.follower
