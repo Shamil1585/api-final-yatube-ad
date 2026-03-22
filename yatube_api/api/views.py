@@ -8,7 +8,7 @@ from .permissions import IsAuthorOrReadOnly
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-pub_date')  # Добавил сортировку
+    queryset = Post.objects.all().order_by('-pub_date')
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = LimitOffsetPagination
@@ -23,7 +23,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         post_id = self.kwargs.get('post_id')
-        return Comment.objects.filter(post_id=post_id).order_by('-created')  # Добавил сортировку
+        return Comment.objects.filter(
+            post_id=post_id
+        ).order_by('-created')
 
     def perform_create(self, serializer):
         post_id = self.kwargs.get('post_id')
@@ -33,9 +35,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
 
 
-class FollowViewSet(mixins.CreateModelMixin,
-                    mixins.ListModelMixin,
-                    viewsets.GenericViewSet):
+class FollowViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
