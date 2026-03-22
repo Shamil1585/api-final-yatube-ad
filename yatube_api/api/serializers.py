@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
+
 from posts.models import Comment, Post, Follow, Group
 from django.contrib.auth import get_user_model
 
@@ -7,58 +9,59 @@ User = get_user_model()
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
         model = Group
+        fields = ('id', 'title', 'slug', 'description')
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
+    author = SlugRelatedField(
         slug_field='username',
         read_only=True
     )
 
     class Meta:
-        fields = '__all__'
         model = Post
+        fields = ('id', 'text', 'pub_date', 'author', 'group', 'image')
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
+    author = SlugRelatedField(
         slug_field='username',
         read_only=True
     )
     post = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
-        fields = '__all__'
         model = Comment
+        fields = ('id', 'author', 'post', 'text', 'created')
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+    user = SlugRelatedField(
         slug_field='username',
         read_only=True,
         default=serializers.CurrentUserDefault()
     )
-    following = serializers.SlugRelatedField(
+    following = SlugRelatedField(
         slug_field='username',
         queryset=User.objects.all()
     )
 
     class Meta:
-        fields = ('user', 'following')
         model = Follow
+        fields = ('user', 'following')
 
-    def validate(self, data):
-        if data['following'] == self.context['request'].user:
+    def validate_following(self, value):
+        request = self.context.get('request')
+        if request and request.user == value:
             raise serializers.ValidationError(
                 'Нельзя подписаться на самого себя'
             )
-        if Follow.objects.filter(
-            user=self.context['request'].user,
-            following=data['following']
+        if request and Follow.objects.filter(
+            user=request.user,
+            following=value
         ).exists():
             raise serializers.ValidationError(
                 'Вы уже подписаны на этого пользователя'
             )
-        return data
+        return value
