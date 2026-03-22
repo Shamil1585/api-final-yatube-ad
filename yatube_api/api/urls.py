@@ -45,4 +45,3 @@ urlpatterns = [
         name='token_verify'
     ),
 ]
-
