@@ -63,3 +63,6 @@ class FollowViewSet(
         return Follow.objects.filter(
             user=self.request.user
         ).select_related('following')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
