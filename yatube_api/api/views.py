@@ -30,7 +30,9 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all().select_related('author').order_by('-created')
+    queryset = Comment.objects.all().select_related('author').order_by(
+        '-created'
+    )
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = None
