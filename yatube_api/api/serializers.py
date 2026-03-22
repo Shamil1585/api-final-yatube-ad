@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
 
 from posts.models import Comment, Post, Follow, Group
 from django.contrib.auth import get_user_model
@@ -13,7 +14,10 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
+    author = SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
 
     class Meta:
         fields = ('id', 'text', 'pub_date', 'author', 'group', 'image')
@@ -21,7 +25,10 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.StringRelatedField(read_only=True)
+    author = SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
     post = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
@@ -30,8 +37,14 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
-    following = serializers.StringRelatedField(read_only=True)
+    user = SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+    following = SlugRelatedField(
+        slug_field='username',
+        queryset=User.objects.all()
+    )
 
     class Meta:
         fields = ('user', 'following')
@@ -51,3 +64,7 @@ class FollowSerializer(serializers.ModelSerializer):
                 'Вы уже подписаны на этого пользователя'
             )
         return value
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
