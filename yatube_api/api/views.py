@@ -10,7 +10,7 @@ from .serializers import (
     GroupSerializer
 )
 from .permissions import IsAuthorOrReadOnly
-
+from .pagination import CustomLimitOffsetPagination
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Group.objects.all()
@@ -25,6 +25,7 @@ class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = LimitOffsetPagination  # Включаем пагинацию
+    pagination_class = CustomLimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
