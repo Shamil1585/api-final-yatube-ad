@@ -16,7 +16,7 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    pagination_class = None  # Для групп пагинация не нужна
+    pagination_class = None
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -32,13 +32,13 @@ class PostViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = None  # Для комментариев пагинация не нужна
+    pagination_class = None
 
     def get_queryset(self):
         post_id = self.kwargs.get('post_id')
         return Comment.objects.filter(
             post_id=post_id
-        ).order_by('-created')
+        ).select_related('author').order_by('-created')
 
     def perform_create(self, serializer):
         post_id = self.kwargs.get('post_id')
@@ -57,10 +57,9 @@ class FollowViewSet(
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('following__username',)
-    pagination_class = None  # Для подписок пагинация не нужна
+    pagination_class = None
 
     def get_queryset(self):
-        return Follow.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        return Follow.objects.filter(
+            user=self.request.user
+        ).select_related('following')
