@@ -1,37 +1,23 @@
 from django.contrib import admin
-
-from .models import Comment, Group, Post, Follow
-
-
-class GroupAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'title', 'slug', 'description')
-    search_fields = ('title',)
-    list_filter = ('title',)
-    empty_value_display = '-пусто-'
+from .models import Post, Comment, Follow
 
 
+@admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'pub_date', 'author')
-    search_fields = ('text',)
+    list_display = ('id', 'text', 'author', 'pub_date')
+    search_fields = ('text', 'author__username')
     list_filter = ('pub_date',)
-    empty_value_display = '-пусто-'
 
 
+@admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'author', 'post', 'created')
-    search_fields = ('text',)
+    list_display = ('id', 'text', 'author', 'post', 'created')
+    search_fields = ('text', 'author__username')
     list_filter = ('created',)
-    empty_value_display = '-пусто-'
 
 
+@admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'user', 'following', 'subscribe_date')
-    search_fields = ('following',)
-    list_filter = ('subscribe_date',)
-    empty_value_display = '-пусто-'
-
-
-admin.site.register(Group, GroupAdmin)
-admin.site.register(Post, PostAdmin)
-admin.site.register(Comment, CommentAdmin)
-admin.site.register(Follow, FollowAdmin)
+    list_display = ('id', 'user', 'following')
+    search_fields = ('user__username', 'following__username')
+    list_filter = ('user', 'following')

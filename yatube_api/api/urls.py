@@ -6,10 +6,16 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
-from .views import PostViewSet, CommentViewSet, FollowViewSet
+from .views import (
+    PostViewSet,
+    CommentViewSet,
+    FollowViewSet,
+    GroupViewSet
+)
 
 router = DefaultRouter()
 router.register('posts', PostViewSet, basename='posts')
+router.register('groups', GroupViewSet, basename='groups')
 router.register('follow', FollowViewSet, basename='follow')
 
 urlpatterns = [
