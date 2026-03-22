@@ -25,6 +25,7 @@ class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
+    post = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         fields = '__all__'
@@ -50,5 +51,13 @@ class FollowSerializer(serializers.ModelSerializer):
         if self.context['request'].user == value:
             raise serializers.ValidationError(
                 'Нельзя подписаться на самого себя'
+            )
+        # Проверка на существующую подписку
+        if Follow.objects.filter(
+            user=self.context['request'].user,
+            following=value
+        ).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого пользователя'
             )
         return value
