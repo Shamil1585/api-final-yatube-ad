@@ -1,5 +1,4 @@
 from rest_framework import viewsets, permissions, mixins
-from .pagination import CustomLimitOffsetPagination
 from rest_framework import filters
 
 from posts.models import Post, Comment, Follow, Group
@@ -20,10 +19,11 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
+    # Сортировка по id (старые первыми)
     queryset = Post.objects.all().order_by('id')
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = CustomLimitOffsetPagination  # Используем кастомный пагинатор
+    pagination_class = None
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
