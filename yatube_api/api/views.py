@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions, mixins
+from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import filters
 
@@ -20,19 +21,17 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-pub_date')
+    queryset = Post.objects.all().order_by('id')  # Сортировка по id (старые первыми)
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = LimitOffsetPagination
+    pagination_class = None
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all().select_related('author').order_by(
-        '-created'
-    )
+    queryset = Comment.objects.all().order_by('id')  # Сортировка по id (старые первыми)
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = None
