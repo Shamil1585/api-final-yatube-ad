@@ -30,15 +30,16 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all().select_related('author').order_by('-created')
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly,)
     pagination_class = None
 
     def get_queryset(self):
         post_id = self.kwargs.get('post_id')
-        return Comment.objects.filter(
-            post_id=post_id
-        ).select_related('author').order_by('-created')
+        if post_id:
+            return self.queryset.filter(post_id=post_id)
+        return self.queryset.none()
 
     def perform_create(self, serializer):
         post_id = self.kwargs.get('post_id')
