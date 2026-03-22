@@ -14,26 +14,20 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(
-        slug_field='username',
-        read_only=True
-    )
+    author = serializers.ReadOnlyField(source='author.username')
 
     class Meta:
-        fields = ('id', 'text', 'pub_date', 'author', 'group', 'image')
         model = Post
+        fields = ('id', 'text', 'pub_date', 'author', 'group', 'image')
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(
-        slug_field='username',
-        read_only=True
-    )
+    author = serializers.ReadOnlyField(source='author.username')
     post = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
-        fields = ('id', 'author', 'post', 'text', 'created')
         model = Comment
+        fields = ('id', 'author', 'post', 'text', 'created')
 
 
 class FollowSerializer(serializers.ModelSerializer):
