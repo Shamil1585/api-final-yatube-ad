@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
 
 from posts.models import Comment, Post, Follow, Group
 from django.contrib.auth import get_user_model
@@ -14,10 +13,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(
-        slug_field='username',
-        read_only=True
-    )
+    author = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         fields = ('id', 'text', 'pub_date', 'author', 'group', 'image')
@@ -25,10 +21,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = SlugRelatedField(
-        slug_field='username',
-        read_only=True
-    )
+    author = serializers.StringRelatedField(read_only=True)
     post = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
@@ -37,15 +30,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    user = SlugRelatedField(
-        slug_field='username',
-        read_only=True,
-        default=serializers.CurrentUserDefault()
-    )
-    following = SlugRelatedField(
-        slug_field='username',
-        queryset=User.objects.all()
-    )
+    user = serializers.StringRelatedField(read_only=True)
+    following = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         fields = ('user', 'following')
