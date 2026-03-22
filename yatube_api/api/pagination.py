@@ -7,7 +7,7 @@ class CustomLimitOffsetPagination(LimitOffsetPagination):
         # Проверяем, были ли переданы параметры limit или offset
         has_limit = self.request.query_params.get('limit')
         has_offset = self.request.query_params.get('offset')
-        
+
         if not has_limit and not has_offset:
             # Если параметры не переданы, возвращаем просто список
             return Response(data)
