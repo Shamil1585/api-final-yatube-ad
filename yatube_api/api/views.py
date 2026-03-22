@@ -23,7 +23,7 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('id')
     serializer_class = PostSerializer
     permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = None
+    pagination_class = None  # Отключаем пагинацию
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
