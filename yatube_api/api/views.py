@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions, mixins
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import filters
 
+
 from posts.models import Post, Comment, Follow, Group
 from .serializers import (
     PostSerializer,
@@ -11,6 +12,7 @@ from .serializers import (
 )
 from .permissions import IsAuthorOrReadOnly
 from .pagination import CustomLimitOffsetPagination
+
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Group.objects.all()
