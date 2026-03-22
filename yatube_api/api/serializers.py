@@ -9,8 +9,8 @@ User = get_user_model()
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
+        fields = '__all__'
         model = Group
-        fields = ('id', 'title', 'slug', 'description')
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -20,8 +20,9 @@ class PostSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        fields = '__all__'
         model = Post
-        fields = ('id', 'text', 'pub_date', 'author', 'group', 'image')
+        read_only_fields = ('author', 'pub_date')
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -32,8 +33,9 @@ class CommentSerializer(serializers.ModelSerializer):
     post = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
+        fields = '__all__'
         model = Comment
-        fields = ('id', 'author', 'post', 'text', 'created')
+        read_only_fields = ('author', 'post', 'created')
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -48,8 +50,8 @@ class FollowSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Follow
         fields = ('user', 'following')
+        model = Follow
 
     def validate_following(self, value):
         request = self.context.get('request')
@@ -65,3 +67,7 @@ class FollowSerializer(serializers.ModelSerializer):
                 'Вы уже подписаны на этого пользователя'
             )
         return value
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
