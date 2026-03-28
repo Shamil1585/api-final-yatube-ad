@@ -2,19 +2,17 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 
-class CustomLimitOffsetPagination(LimitOffsetPagination):
-    def get_paginated_response(self, data):
-        # Проверяем, были ли переданы параметры limit или offset
-        has_limit = self.request.query_params.get('limit')
-        has_offset = self.request.query_params.get('offset')
-
+class ConditionalPagination(LimitOffsetPagination):
+    """Возвращает список без пагинации, если нет limit/offset."""
+    def paginate_queryset(self, queryset, request, view=None):
+        has_limit = 'limit' in request.query_params
+        has_offset = 'offset' in request.query_params
         if not has_limit and not has_offset:
-            # Если параметры не переданы, возвращаем просто список
+            self.count = None
+            return None
+        return super().paginate_queryset(queryset, request, view)
+
+    def get_paginated_response(self, data):
+        if self.count is None:
             return Response(data)
-        # Иначе возвращаем словарь с пагинацией
-        return Response({
-            'count': self.count,
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'results': data
-        })
+        return super().get_paginated_response(data)
